@@ -3,9 +3,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 from time import time
 import json
-# todo: grid search, graph, save to file
 
 
 def save_results(data, append=False):
@@ -28,7 +28,7 @@ def fit_predict_score(model, x_train, y_train, x_test, y_test, verbose=False, sh
         print(f'{model} train score: {acc_train}, test score: {acc_test}')
         if showtime:
             print(f'{model} train time: {run_time:.3f}')
-    return acc_test
+    return {'train_score': acc_train, 'test_score': acc_test, 'train_time': run_time}
 
 
 def main():
@@ -40,13 +40,13 @@ def main():
     x_test = scale(test_set.drop('label', axis=1))
     y_test = test_set['label']
 
-    models = [MLPClassifier(hidden_layer_sizes=(60, 80, 60), solver='adam', alpha=0.001),
-              KNeighborsClassifier(5),
-              DecisionTreeClassifier()]
+    models = [MLPClassifier(hidden_layer_sizes=(60, 80, 60), solver='adam', alpha=0.01),
+              KNeighborsClassifier(n_neighbors=3),
+              DecisionTreeClassifier(criterion='gini', max_depth=80)]
     scores = {}
     for model in models:
-        scores[type(model).__name__] = fit_predict_score(model, x_train, y_train, x_test, y_test,
-                                                         verbose=True, showtime=True)
+        scores[str(model)] = fit_predict_score(model, x_train, y_train, x_test, y_test,
+                                               verbose=True, showtime=True)
 
     print(scores)
     save_results(scores, append=True)
